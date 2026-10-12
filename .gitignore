@@ -1,0 +1,32 @@
+## .NET and Build Outputs
+bin/
+obj/
+publish/
+installers/
+
+## Visual Studio & IDEs
+.vs/
+.vscode/
+.idea/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.pidb
+*.booproj
+*.svclog
+
+## Build & Test Logs
+*.log
+*.tmp
+*.temp
+
+## Package / Archive outputs
+*.zip
+*.tar.gz
+
+## Local User Configuration & Cache
+filanshare_settings.json
+[Tt]humbs.db
+[Dd]esktop.ini
+.DS_Store

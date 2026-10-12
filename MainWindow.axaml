@@ -1,0 +1,705 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="FileSender.MainWindow"
+        Title="FilanShare - Direct &amp; Stealth P2P Transfer (Windows &amp; Linux)"
+        Icon="/app_icon.ico"
+        Width="1120" Height="730" MinWidth="960" MinHeight="620"
+        WindowStartupLocation="CenterScreen"
+        Background="#F8FAFC">
+
+    <Grid RowDefinitions="Auto,*,Auto,Auto">
+
+        <!-- ========================================== -->
+        <!-- TOP APP HEADER & MAIN MENU TABS            -->
+        <!-- ========================================== -->
+        <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1" Padding="20,10">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                
+                <!-- Branding -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Spacing="12">
+                    <Border Width="38" Height="38" CornerRadius="8" Background="#2563EB">
+                        <TextBlock Text="⚡" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#FFFFFF"/>
+                    </Border>
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="FilanShare" FontSize="17" FontWeight="Bold" Foreground="#0F172A"/>
+                        <TextBlock x:Name="LblAppSubtitle" Text="Stealth P2P Transfer • Windows &amp; Linux" FontSize="11" Foreground="#64748B"/>
+                    </StackPanel>
+                </StackPanel>
+
+                <!-- MAIN MENU TABS: File, Setting, About -->
+                <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6">
+                    <Button x:Name="BtnMenuFile" Content="📁 File" Classes="tab-active" Click="BtnMenuFile_Click"/>
+                    <Button x:Name="BtnMenuSetting" Content="⚙️ Setting" Classes="tab" Click="BtnMenuSetting_Click"/>
+                    <Button x:Name="BtnMenuAbout" Content="ℹ️ About" Classes="tab" Click="BtnMenuAbout_Click"/>
+                </StackPanel>
+
+                <!-- Right: Language Switcher (Flags) & Server Status -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+                    <!-- EN / ID Flag Selector -->
+                    <Border Background="#F1F5F9" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="8" Padding="3">
+                        <StackPanel Orientation="Horizontal" Spacing="3">
+                            <Button x:Name="BtnLangID" Classes="primary" Padding="8,4" FontSize="11" Click="BtnLangID_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <!-- Indonesian Flag: Merah Putih -->
+                                    <Border Width="16" Height="11" CornerRadius="1" BorderBrush="#94A3B8" BorderThickness="0.5" ClipToBounds="True">
+                                        <Grid RowDefinitions="*,*">
+                                            <Border Grid.Row="0" Background="#DC2626"/>
+                                            <Border Grid.Row="1" Background="#FFFFFF"/>
+                                        </Grid>
+                                    </Border>
+                                    <TextBlock Text="ID" FontWeight="Bold" FontSize="11" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                            <Button x:Name="BtnLangEN" Classes="outline" Padding="8,4" FontSize="11" Click="BtnLangEN_Click">
+                                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                    <!-- UK Flag: Red White Blue -->
+                                    <Border Width="16" Height="11" CornerRadius="1" BorderBrush="#94A3B8" BorderThickness="0.5" ClipToBounds="True">
+                                        <Grid Background="#00247D">
+                                            <Rectangle Width="3" Fill="#FFFFFF" HorizontalAlignment="Center"/>
+                                            <Rectangle Height="3" Fill="#FFFFFF" VerticalAlignment="Center"/>
+                                            <Rectangle Width="1.8" Fill="#CF142B" HorizontalAlignment="Center"/>
+                                            <Rectangle Height="1.8" Fill="#CF142B" VerticalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+                                    <TextBlock Text="EN" FontWeight="Bold" FontSize="11" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </Button>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Status Badge -->
+                    <Border Background="#F1F5F9" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="12" Padding="12,5">
+                        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                            <Ellipse x:Name="DotServerStatus" Width="8" Height="8" Fill="#DC2626"/>
+                            <TextBlock x:Name="TxtServerStatusBadge" Text="Server: Offline" FontSize="11" Foreground="#475569" FontWeight="SemiBold"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ========================================== -->
+        <!-- MAIN CONTENT AREA                          -->
+        <!-- ========================================== -->
+        <Grid Grid.Row="1" Margin="20,14">
+
+            <!-- ========================================================= -->
+            <!-- 1. TAB MENU: FILE (Host, Client, Logs)                   -->
+            <!-- ========================================================= -->
+            <Grid x:Name="ViewMenuFile" RowDefinitions="Auto,*" IsVisible="True">
+                
+                <!-- Sub-Navigation Pills (Activity Logs removed, as Event Log is at the bottom) -->
+                <Border Grid.Row="0" Margin="0,0,0,10">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button x:Name="BtnSubTabHost" Content="📡 Mode Host (Bagikan)" Classes="primary" Padding="16,8" Click="BtnSubTabHost_Click"/>
+                        <Button x:Name="BtnSubTabClient" Content="💻 Mode Klien (Jelajahi)" Classes="outline" Padding="16,8" Click="BtnSubTabClient_Click"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- FILE SUB-VIEW CONTAINER -->
+                <Grid Grid.Row="1">
+
+                    <!-- SUB-TAB: HOST VIEW -->
+                    <Grid x:Name="ViewHost" RowDefinitions="*,Auto" IsVisible="True">
+                        <!-- Top: Configuration and Active Status/Credentials -->
+                        <Grid Grid.Row="0" ColumnDefinitions="1.2*,*">
+                            <!-- Left: Host Configuration (Single Unified Card, No ScrollViewer) -->
+                            <Border Grid.Column="0" Margin="0,0,12,0" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="16,14">
+                                <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+                                    <TextBlock x:Name="LblNetworkAuthHeader" IsVisible="False"/>
+
+                                    <!-- 1. Folder Selection -->
+                                    <StackPanel Grid.Row="0" Spacing="4" Margin="0,0,0,10">
+                                        <TextBlock x:Name="LblSharedFolderHeader" Text="📁 Folder yang Ingin Dibagikan" FontSize="13" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                        <Grid ColumnDefinitions="*,Auto,Auto">
+                                            <TextBox x:Name="TxtSharedFolderPath" Grid.Column="0" Margin="0,0,8,0" Height="32" IsReadOnly="True" Background="#F8FAFC" Foreground="#0F172A" BorderBrush="#CBD5E1"/>
+                                            <Button x:Name="BtnBrowseFolder" Grid.Column="1" Content="Pilih Folder..." Classes="primary" Height="32" Margin="0,0,6,0" Click="BtnBrowseFolder_Click"/>
+                                            <Button x:Name="BtnOpenFolderHost" Grid.Column="2" Content="📂 Buka Folder" Classes="outline" Height="32" ToolTip.Tip="Buka folder di File Explorer untuk copy paste file" Click="BtnOpenFolderHost_Click"/>
+                                        </Grid>
+                                    </StackPanel>
+
+                                    <!-- 2. Port & Firewall -->
+                                    <Grid Grid.Row="1" ColumnDefinitions="Auto,90,*,Auto" Margin="0,0,0,10" VerticalAlignment="Center">
+                                        <TextBlock x:Name="LblPort" Grid.Column="0" Text="Port Server:" FontSize="12" Foreground="#64748B" VerticalAlignment="Center" Margin="0,0,8,0"/>
+                                        <TextBox x:Name="TxtPort" Grid.Column="1" Text="5050" Height="32" Background="#F8FAFC" BorderBrush="#CBD5E1"/>
+                                        <!-- Firewall status indicator -->
+                                        <Border x:Name="PillFirewallStatus" Grid.Column="2" Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" CornerRadius="6" Padding="8,4" Margin="8,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Left">
+                                            <Grid ColumnDefinitions="Auto,*,Auto">
+                                                <TextBlock x:Name="TxtFirewallIcon" Grid.Column="0" Text="🛡️" FontSize="11" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                                <TextBlock x:Name="TxtFirewallStatus" Grid.Column="1" Text="Firewall: Open (5050)" FontSize="11" Foreground="#065F46" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                                <Button x:Name="BtnFixFirewall" Grid.Column="2" Content="Open" FontSize="10" Padding="5,1" Margin="6,0,0,0" Classes="outline" IsVisible="False" Click="BtnFixFirewall_Click"/>
+                                            </Grid>
+                                        </Border>
+                                        <!-- All Interfaces badge on host card -->
+                                        <Border x:Name="PillAllInterfaces" Grid.Column="3" Background="#F0FDF4" BorderBrush="#BBF7D0" BorderThickness="1" CornerRadius="6" Padding="8,4" Margin="8,0,0,0" VerticalAlignment="Center" HorizontalAlignment="Right" ToolTip.Tip="Server mendengarkan di 0.0.0.0 (semua interface jaringan)">
+                                            <TextBlock x:Name="TxtAllInterfacesTag" Text="🌐 Semua Interface (0.0.0.0)" FontSize="11" Foreground="#166534" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        </Border>
+                                    </Grid>
+
+                                    <!-- 3. Username & Password with Actions -->
+                                    <Grid Grid.Row="2" ColumnDefinitions="130,*" Margin="0,0,0,10">
+                                        <!-- Username -->
+                                        <StackPanel Grid.Column="0" Margin="0,0,10,0" Spacing="3">
+                                            <TextBlock x:Name="LblUsername" Text="Username:" FontSize="11" Foreground="#64748B"/>
+                                            <TextBox x:Name="TxtUsername" Text="admin" Height="32" VerticalContentAlignment="Center" Background="#F8FAFC" BorderBrush="#CBD5E1"/>
+                                        </StackPanel>
+                                        <!-- Password + Actions in one unified group -->
+                                        <StackPanel Grid.Column="1" Spacing="3">
+                                            <TextBlock x:Name="LblPassword" Text="Password:" FontSize="11" Foreground="#64748B"/>
+                                            <Grid ColumnDefinitions="*,Auto,Auto">
+                                                <TextBox x:Name="TxtPassword" Grid.Column="0" PasswordChar="*" Text="admin" Height="32" VerticalContentAlignment="Center" Background="#F8FAFC" BorderBrush="#CBD5E1"/>
+                                                <Button x:Name="BtnToggleShowPass" Grid.Column="1" Content="👁" Classes="outline" Height="32" Margin="6,0,0,0" Padding="8,0" FontSize="11" VerticalAlignment="Center" VerticalContentAlignment="Center" Click="BtnToggleShowPass_Click" ToolTip.Tip="Show / Hide Password"/>
+                                                <Button x:Name="BtnGeneratePass" Grid.Column="2" Content="🎲" Classes="outline" Height="32" Margin="4,0,0,0" Padding="8,0" FontSize="11" VerticalAlignment="Center" VerticalContentAlignment="Center" Click="BtnGeneratePass_Click" ToolTip.Tip="Random Password"/>
+                                            </Grid>
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- 4. Client Permissions -->
+                                    <StackPanel Grid.Row="3" Orientation="Horizontal" Spacing="16" Margin="0,0,0,12" VerticalAlignment="Center">
+                                        <CheckBox x:Name="ChkAllowDownload" Content="Allow Download" IsChecked="True" FontSize="12"/>
+                                        <CheckBox x:Name="ChkAllowUpload" Content="Allow Upload" IsChecked="True" FontSize="12"/>
+                                    </StackPanel>
+
+                                    <!-- 5. Single, Clear Start/Stop Button (Never Submerged) -->
+                                    <Button x:Name="BtnToggleServer" Grid.Row="4" Content="🚀 MULAI SHARING" Classes="success" FontSize="14" FontWeight="Bold" Height="40" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Click="BtnToggleServer_Click"/>
+                                </Grid>
+                            </Border>
+
+                            <!-- Right: Status Card & Primary Server Controls -->
+                            <Border Grid.Column="1" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="16">
+                                <Grid>
+                                    <!-- Stopped State -->
+                                    <StackPanel x:Name="PanelHostStopped" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="12" IsVisible="True">
+                                        <TextBlock Text="💤" FontSize="40" HorizontalAlignment="Center"/>
+                                        <TextBlock x:Name="LblServerStoppedTitle" Text="Server Sedang Tidak Aktif" FontSize="16" FontWeight="Bold" HorizontalAlignment="Center" Foreground="#0F172A"/>
+                                        <TextBlock x:Name="LblServerStoppedDesc" Text="Pilih folder di sebelah kiri dan klik tombol di bawah untuk mengaktifkan server di jaringan LAN." 
+                                                   FontSize="12" Foreground="#64748B" TextAlignment="Center"/>
+
+                                        <Border Background="#F1F5F9" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="10" MaxWidth="360" Margin="0,4,0,0">
+                                            <TextBlock x:Name="LblStealthNotice" Text="🔒 Keamanan Stealth: Server ini tidak memancarkan beacon UDP/mDNS sehingga perangkat Anda aman dan tidak terdeteksi otomatis oleh orang lain di LAN." 
+                                                       FontSize="11" Foreground="#475569" TextWrapping="Wrap"/>
+                                        </Border>
+                                    </StackPanel>
+
+                                    <!-- Running State -->
+                                    <StackPanel x:Name="PanelHostRunning" Spacing="10" IsVisible="False">
+                                        <!-- Header banner (Full Width, single control on left card) -->
+                                        <Border Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1" CornerRadius="6" Padding="12">
+                                            <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                <Ellipse Width="10" Height="10" Fill="#10B981"/>
+                                                <TextBlock x:Name="LblServerActiveBanner" Text="SERVER AKTIF &amp; SIAP DIAKSES" FontWeight="Bold" Foreground="#065F46" FontSize="13" VerticalAlignment="Center"/>
+                                            </StackPanel>
+                                        </Border>
+
+                                        <TextBlock x:Name="LblCredentialsTitle" Text="Informasi untuk dimasukkan di Klien (PC A):" FontSize="12" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                        
+                                        <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="12">
+                                            <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" ColumnDefinitions="90,*">
+                                                <TextBlock x:Name="LblCredHostIp" Grid.Row="0" Grid.Column="0" Text="IP Host:" Foreground="#64748B" Margin="0,2" VerticalAlignment="Center"/>
+                                                <Grid Grid.Row="0" Grid.Column="1" ColumnDefinitions="*,Auto" Margin="0,2">
+                                                    <ComboBox x:Name="CmbInfoHostIp" Grid.Column="0" Height="30" FontSize="12" FontWeight="SemiBold" Foreground="#2563EB" Background="#FFFFFF" BorderBrush="#CBD5E1" HorizontalAlignment="Stretch" SelectionChanged="CmbInfoHostIp_SelectionChanged"/>
+                                                    <TextBlock x:Name="TxtInfoHostIp" Grid.Column="0" Text="192.168.1.10" FontWeight="Bold" Foreground="#2563EB" VerticalAlignment="Center" IsVisible="False"/>
+                                                </Grid>
+
+                                                <!-- All Interfaces Note -->
+                                                <Border Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Background="#EFF6FF" BorderBrush="#BFDBFE" BorderThickness="1" CornerRadius="4" Padding="8,4" Margin="0,4,0,6">
+                                                    <TextBlock x:Name="LblAllInterfacesNotice" Text="🌐 Terbuka di semua interface (0.0.0.0). Pilih IP di atas sesuai koneksi klien:" FontSize="10" Foreground="#1E40AF" TextWrapping="Wrap"/>
+                                                </Border>
+
+                                                <TextBlock x:Name="LblCredPort" Grid.Row="2" Grid.Column="0" Text="Port:" Foreground="#64748B" Margin="0,2" VerticalAlignment="Center"/>
+                                                <TextBlock x:Name="TxtInfoPort" Grid.Row="2" Grid.Column="1" Text="5050" FontWeight="Bold" Foreground="#2563EB" Margin="0,2" VerticalAlignment="Center"/>
+
+                                                <TextBlock x:Name="LblCredUser" Grid.Row="3" Grid.Column="0" Text="Username:" Foreground="#64748B" Margin="0,2" VerticalAlignment="Center"/>
+                                                <TextBlock x:Name="TxtInfoUsername" Grid.Row="3" Grid.Column="1" Text="admin" FontWeight="Bold" Foreground="#0F172A" Margin="0,2" VerticalAlignment="Center"/>
+
+                                                <TextBlock x:Name="LblCredPass" Grid.Row="4" Grid.Column="0" Text="Password:" Foreground="#64748B" Margin="0,2" VerticalAlignment="Center"/>
+                                                <StackPanel Grid.Row="4" Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                                                    <TextBlock x:Name="TxtInfoPassword" Text="••••••••" FontWeight="Bold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                                    <Button x:Name="BtnToggleShowPassInfo" Content="👁" Classes="outline" Padding="5,1" FontSize="11" Height="22" VerticalAlignment="Center" Click="BtnToggleShowPass_Click" ToolTip.Tip="Show / Hide Password"/>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+
+                                        <Button x:Name="BtnCopyCredentials" Content="📋 Salin Kredensial Lengkap" Classes="outline" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Click="BtnCopyCredentials_Click" Margin="0,4,0,0"/>
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </Grid>
+
+                        <!-- Bottom: Komputer yang Terakhir Terhubung Card -->
+                        <Border Grid.Row="1" Margin="0,8,0,0" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="12,8">
+                            <Grid RowDefinitions="Auto,Auto">
+                                <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0,0,0,6">
+                                    <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                        <TextBlock Text="💻" FontSize="15" VerticalAlignment="Center"/>
+                                        <TextBlock x:Name="LblConnectedDevicesTitle" Text="Komputer yang Terakhir Terhubung" FontSize="13" FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                        <Border Background="#EFF6FF" CornerRadius="10" Padding="8,2" VerticalAlignment="Center">
+                                            <TextBlock x:Name="TxtConnectedCount" Text="0 Perangkat" FontSize="11" Foreground="#2563EB" FontWeight="Bold"/>
+                                        </Border>
+                                    </StackPanel>
+                                    <Button x:Name="BtnClearConnectedList" Grid.Column="1" Content="🧹 Bersihkan Riwayat" Classes="outline" Padding="8,3" FontSize="11" Click="BtnClearConnectedList_Click"/>
+                                </Grid>
+
+                                <Grid Grid.Row="1" MinHeight="36" MaxHeight="100">
+                                    <!-- Empty State -->
+                                    <Border x:Name="PanelNoConnectedDevices" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="10" IsVisible="True">
+                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                                            <TextBlock Text="📡" FontSize="14" VerticalAlignment="Center"/>
+                                            <TextBlock x:Name="LblNoConnectedDevices" Text="Belum ada komputer yang terhubung. Komputer yang mengakses server akan otomatis muncul di sini." FontSize="12" Foreground="#64748B" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <!-- ListBox of Connected Devices -->
+                                    <ListBox x:Name="LstConnectedDevices" Background="Transparent" BorderThickness="0" IsVisible="False">
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,2">
+                                                    <Grid ColumnDefinitions="30,1.2*,1.5*,Auto">
+                                                        <TextBlock Grid.Column="0" Text="{Binding Icon}" FontSize="15" VerticalAlignment="Center"/>
+                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" Foreground="#0F172A" FontSize="12"/>
+                                                            <TextBlock Text="{Binding IpAddress}" Foreground="#64748B" FontSize="11"/>
+                                                        </StackPanel>
+                                                        <Border Grid.Column="2" Background="#EFF6FF" CornerRadius="4" Padding="6,2" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding LastAction}" Foreground="#1D4ED8" FontSize="11"/>
+                                                        </Border>
+                                                        <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding FormattedTime}" Foreground="#94A3B8" FontSize="11" VerticalAlignment="Center"/>
+                                                            <Border Background="#DCFCE7" CornerRadius="10" Padding="6,2">
+                                                                <TextBlock Text="{Binding StatusBadge}" Foreground="#15803D" FontSize="10" FontWeight="Bold"/>
+                                                            </Border>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+                                </Grid>
+                            </Grid>
+                        </Border>
+                    </Grid>
+
+                    <!-- SUB-TAB: CLIENT VIEW -->
+                    <Grid x:Name="ViewClient" RowDefinitions="Auto,*,Auto" IsVisible="False">
+                        <Border Grid.Row="0" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="14" Margin="0,0,0,12">
+                            <Grid ColumnDefinitions="1.4*,0.7*,*,*,Auto,Auto">
+                                <StackPanel Grid.Column="0" Margin="0,0,8,0" Spacing="3">
+                                    <TextBlock x:Name="LblClientHostIp" Text="IP Host (PC B):" FontSize="11" Foreground="#64748B"/>
+                                    <TextBox x:Name="TxtClientHostIp" Text="127.0.0.1" Height="34" Background="#F8FAFC" BorderBrush="#CBD5E1"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="1" Margin="0,0,8,0" Spacing="3">
+                                    <TextBlock x:Name="LblClientPort" Text="Port:" FontSize="11" Foreground="#64748B"/>
+                                    <TextBox x:Name="TxtClientPort" Text="5050" Height="34" Background="#F8FAFC" BorderBrush="#CBD5E1"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2" Margin="0,0,8,0" Spacing="3">
+                                    <TextBlock x:Name="LblClientUser" Text="Username:" FontSize="11" Foreground="#64748B"/>
+                                    <TextBox x:Name="TxtClientUsername" Text="admin" Height="34" Background="#F8FAFC" BorderBrush="#CBD5E1"/>
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="3" Margin="0,0,12,0" Spacing="3">
+                                    <TextBlock x:Name="LblClientPass" Text="Password:" FontSize="11" Foreground="#64748B"/>
+                                    <TextBox x:Name="TxtClientPassword" PasswordChar="*" Text="admin" Height="34" Background="#F8FAFC" BorderBrush="#CBD5E1"/>
+                                </StackPanel>
+
+                                <Button x:Name="BtnClientConnect" Grid.Column="4" Content="⚡ HUBUNGKAN" Classes="success" Height="34" Margin="0,17,8,0" Click="BtnClientConnect_Click"/>
+                                <Button x:Name="BtnClientDisconnect" Grid.Column="5" Content="Putus" Classes="danger" Height="34" Margin="0,17,0,0" IsEnabled="False" Click="BtnClientDisconnect_Click"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Explorer Card -->
+                        <Border Grid.Row="1" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="14">
+                            <Grid RowDefinitions="Auto,Auto,*">
+                                <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,*,Auto,Auto,Auto" Margin="0,0,0,10">
+                                    <Button x:Name="BtnNavUp" Grid.Column="0" Content="⬆ Folder Atas" Classes="outline" Height="34" Margin="0,0,6,0" Click="BtnNavUp_Click"/>
+                                    <Button x:Name="BtnNavRefresh" Grid.Column="1" Content="🔄 Muat Ulang" Classes="outline" Height="34" Margin="0,0,8,0" Click="BtnNavRefresh_Click"/>
+
+                                    <Border Grid.Column="2" Background="#F8FAFC" BorderBrush="#CBD5E1" BorderThickness="1" CornerRadius="6" Padding="10,6" Margin="0,0,8,0">
+                                        <StackPanel Orientation="Horizontal" Spacing="4">
+                                            <TextBlock x:Name="LblLocationTag" Text="Lokasi: " Foreground="#64748B" FontSize="12"/>
+                                            <TextBlock x:Name="TxtCurrentPathDisplay" Text="/" Foreground="#2563EB" FontWeight="SemiBold" FontSize="12"/>
+                                        </StackPanel>
+                                    </Border>
+
+                                    <Button x:Name="BtnDownloadSelected" Grid.Column="3" Content="⬇ Unduh File Terpilih" Classes="primary" Height="34" Margin="0,0,6,0" Click="BtnDownloadSelected_Click"/>
+                                    <Button x:Name="BtnUploadFile" Grid.Column="4" Content="⬆ Upload File" Classes="outline" Height="34" Margin="0,0,6,0" Click="BtnUploadFile_Click"/>
+                                    <Button x:Name="BtnDeleteFile" Grid.Column="5" Content="🗑 Hapus File" Classes="danger" Height="34" Click="BtnDeleteFile_Click"/>
+                                </Grid>
+
+                                <!-- Table Header -->
+                                <Border Grid.Row="1" Background="#F1F5F9" CornerRadius="4" Padding="10,7" Margin="0,0,0,4">
+                                    <Grid ColumnDefinitions="40,2*,*,*,*">
+                                        <TextBlock Grid.Column="0" Text="" Foreground="#64748B" FontWeight="SemiBold" FontSize="12"/>
+                                        <TextBlock x:Name="LblColName" Grid.Column="1" Text="Nama" Foreground="#475569" FontWeight="SemiBold" FontSize="12"/>
+                                        <TextBlock x:Name="LblColType" Grid.Column="2" Text="Tipe" Foreground="#475569" FontWeight="SemiBold" FontSize="12"/>
+                                        <TextBlock x:Name="LblColSize" Grid.Column="3" Text="Ukuran" Foreground="#475569" FontWeight="SemiBold" FontSize="12"/>
+                                        <TextBlock x:Name="LblColModified" Grid.Column="4" Text="Waktu Modifikasi" Foreground="#475569" FontWeight="SemiBold" FontSize="12"/>
+                                    </Grid>
+                                </Border>
+
+                                <!-- Table Rows & Drag-Drop Zone -->
+                                <Grid Grid.Row="2">
+                                    <ListBox x:Name="LstFiles" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" 
+                                             SelectionMode="Multiple"
+                                             DoubleTapped="LstFiles_DoubleTapped"
+                                             DragDrop.AllowDrop="True">
+                                        <ListBox.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem x:Name="CtxMenuDownload" Header="⬇ Unduh (Download)" Click="BtnDownloadSelected_Click">
+                                                    <MenuItem.Icon>
+                                                        <TextBlock Text="⬇" VerticalAlignment="Center"/>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <Separator/>
+                                                <MenuItem x:Name="CtxMenuDelete" Header="🗑 Hapus (Delete)" Click="BtnDeleteFile_Click">
+                                                    <MenuItem.Icon>
+                                                        <TextBlock Text="🗑" VerticalAlignment="Center"/>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                                <Separator/>
+                                                <MenuItem x:Name="CtxMenuRefresh" Header="🔄 Muat Ulang (Refresh)" Click="BtnNavRefresh_Click">
+                                                    <MenuItem.Icon>
+                                                        <TextBlock Text="🔄" VerticalAlignment="Center"/>
+                                                    </MenuItem.Icon>
+                                                </MenuItem>
+                                            </ContextMenu>
+                                        </ListBox.ContextMenu>
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid ColumnDefinitions="40,2*,*,*,*" Margin="4,2" Background="Transparent" PointerPressed="LstFilesItem_PointerPressed">
+                                                    <TextBlock Grid.Column="0" Text="{Binding Icon}" FontSize="15" VerticalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="1" Text="{Binding Name}" FontWeight="Medium" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="2" Text="{Binding ItemType}" Foreground="#64748B" VerticalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="3" Text="{Binding FormattedSize}" Foreground="#64748B" VerticalAlignment="Center"/>
+                                                    <TextBlock Grid.Column="4" Text="{Binding LastModified, StringFormat='{}{0:yyyy-MM-dd HH:mm}'}" Foreground="#64748B" VerticalAlignment="Center"/>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
+
+                                    <!-- Drag & Drop Hover Visual Overlay -->
+                                    <Border x:Name="DropOverlay" Background="#F0F7FF" BorderBrush="#2563EB" BorderThickness="2" CornerRadius="8"
+                                            IsVisible="False" IsHitTestVisible="False" Margin="2">
+                                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="8">
+                                            <TextBlock Text="📥" FontSize="44" HorizontalAlignment="Center"/>
+                                            <TextBlock x:Name="TxtDropTitle" Text="Drop Files or Folders Here" FontSize="16" FontWeight="Bold" Foreground="#1D4ED8" HorizontalAlignment="Center"/>
+                                            <TextBlock x:Name="TxtDropDesc" Text="Supports multiple files and entire folders to upload to host" FontSize="12" Foreground="#3B82F6" HorizontalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Border>
+                                </Grid>
+                            </Grid>
+                        </Border>
+
+                        <!-- Transfer Monitor Panel -->
+                        <Border x:Name="PanelTransferMonitor" Grid.Row="2" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="14" Margin="0,12,0,0" IsVisible="False">
+                            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,Auto,Auto">
+                                <StackPanel Grid.Row="0" Grid.Column="0" Spacing="2">
+                                    <StackPanel Orientation="Horizontal" Spacing="6">
+                                        <TextBlock x:Name="TxtTransferStatus" Text="Mengunduh: " FontWeight="SemiBold" Foreground="#2563EB"/>
+                                        <TextBlock x:Name="TxtTransferFileName" Text="file.zip" FontWeight="Bold" Foreground="#0F172A"/>
+                                    </StackPanel>
+                                    <TextBlock x:Name="TxtTransferDetail" Text="0 MB / 0 MB • 0 MB/s" FontSize="11" Foreground="#64748B"/>
+                                </StackPanel>
+
+                                <ProgressBar x:Name="PrgTransfer" Grid.Row="1" Grid.Column="0" Margin="0,8,12,0" Height="8" Minimum="0" Maximum="100"/>
+
+                                <Button x:Name="BtnCancelTransfer" Grid.Row="0" Grid.RowSpan="2" Grid.Column="1" Content="Batal" Classes="danger" Height="32" Margin="0,0,8,0" Click="BtnCancelTransfer_Click"/>
+                                <Button x:Name="BtnOpenDownloadFolder" Grid.Row="0" Grid.RowSpan="2" Grid.Column="2" Content="📁 Buka Folder Unduhan" Classes="outline" Height="32" Click="BtnOpenDownloadFolder_Click"/>
+                            </Grid>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Grid>
+
+            <!-- ========================================================= -->
+            <!-- 2. TAB MENU: SETTING (Pengaturan)                        -->
+            <!-- ========================================================= -->
+            <ScrollViewer x:Name="ViewMenuSetting" IsVisible="False">
+                <StackPanel Spacing="16" MaxWidth="780" HorizontalAlignment="Left">
+                    
+                    <TextBlock x:Name="LblSettingTitle" Text="⚙️ Pengaturan Aplikasi" FontSize="20" FontWeight="Bold" Foreground="#0F172A"/>
+                    <TextBlock x:Name="LblSettingDesc" Text="Customize default folder directories, port, and permissions for FilanShare." FontSize="13" Foreground="#64748B"/>
+
+                    <!-- Card 1: Pengaturan Folder Berbagi -->
+                    <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="18">
+                        <StackPanel Spacing="10">
+                            <TextBlock x:Name="LblSettingLocations" Text="📁 Folder Berbagi Server (Shared Folder)" FontSize="15" FontWeight="SemiBold" Foreground="#0F172A"/>
+                            <TextBlock x:Name="LblSettingSharedDesc" Text="Folder ini adalah lokasi penyimpanan file yang dibagikan oleh server. Anda dapat langsung copy-paste file ke folder ini di File Explorer." FontSize="12" Foreground="#64748B" TextWrapping="Wrap"/>
+                            <Grid ColumnDefinitions="*,Auto,Auto" Margin="0,4,0,0">
+                                <TextBox x:Name="TxtSettingSharedPath" Grid.Column="0" Margin="0,0,8,0" IsReadOnly="True" Background="#F8FAFC" BorderBrush="#CBD5E1"/>
+                                <Button x:Name="BtnChangeSharedFolder" Grid.Column="1" Content="Ubah..." Classes="outline" Margin="0,0,8,0" Click="BtnChangeSharedFolder_Click"/>
+                                <Button x:Name="BtnOpenSharedFolderSettings" Grid.Column="2" Content="📂 Buka Folder" Classes="outline" Click="BtnOpenSharedFolderSettings_Click"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Card 2: Pengaturan Jaringan & Daftar Pengguna (User Management) -->
+                    <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="18">
+                        <StackPanel Spacing="14">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <TextBlock x:Name="LblSettingParams" Text="🌐 Parameter Server &amp; Daftar Pengguna" FontSize="15" FontWeight="SemiBold" Foreground="#0F172A" VerticalAlignment="Center"/>
+                                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                    <TextBlock x:Name="LblSettingDefaultPort" Text="Port Server Default:" FontSize="12" Foreground="#64748B" VerticalAlignment="Center"/>
+                                    <TextBox x:Name="TxtSettingDefaultPort" Text="5050" Width="80" Height="30" VerticalContentAlignment="Center" Background="#F8FAFC" BorderBrush="#CBD5E1"/>
+                                </StackPanel>
+                            </Grid>
+
+                            <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="6" Padding="12,12">
+                                <StackPanel Spacing="10">
+                                    <Grid ColumnDefinitions="*,Auto">
+                                        <StackPanel Grid.Column="0" Spacing="2">
+                                            <TextBlock x:Name="LblUserListTitle" Text="👥 Daftar Akun Pengguna &amp; Hak Akses" FontSize="13" FontWeight="SemiBold" Foreground="#0F172A"/>
+                                            <TextBlock x:Name="LblUserListDesc" Text="Kelola akun pengguna beserta hak akses Baca (Read), Tulis (Write), dan Hapus (Delete). User 'admin' secara default memiliki semua izin." FontSize="11" Foreground="#64748B" TextWrapping="Wrap"/>
+                                        </StackPanel>
+                                        <Button x:Name="BtnAddUser" Grid.Column="1" Content="➕ Tambah Pengguna" Classes="outline" Height="30" Padding="10,0" FontSize="12" Click="BtnAddUser_Click" VerticalAlignment="Center"/>
+                                    </Grid>
+
+                                    <!-- Table Header -->
+                                    <Border Background="#EDF2F7" CornerRadius="4" Padding="8,6">
+                                        <Grid ColumnDefinitions="*,*,75,75,75,45">
+                                            <TextBlock x:Name="LblColUser" Grid.Column="0" Text="Username" FontWeight="SemiBold" FontSize="11" Foreground="#475569" Margin="4,0"/>
+                                            <TextBlock x:Name="LblColPass" Grid.Column="1" Text="Password" FontWeight="SemiBold" FontSize="11" Foreground="#475569" Margin="4,0"/>
+                                            <TextBlock x:Name="LblColRead" Grid.Column="2" Text="Read" FontWeight="SemiBold" FontSize="11" Foreground="#475569" HorizontalAlignment="Center"/>
+                                            <TextBlock x:Name="LblColWrite" Grid.Column="3" Text="Write" FontWeight="SemiBold" FontSize="11" Foreground="#475569" HorizontalAlignment="Center"/>
+                                            <TextBlock x:Name="LblColDelete" Grid.Column="4" Text="Delete" FontWeight="SemiBold" FontSize="11" Foreground="#475569" HorizontalAlignment="Center"/>
+                                            <TextBlock x:Name="LblColAction" Grid.Column="5" Text="Aksi" FontWeight="SemiBold" FontSize="11" Foreground="#475569" HorizontalAlignment="Center"/>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- User Items List -->
+                                    <ItemsControl x:Name="ListUserAccounts">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border BorderBrush="#E2E8F0" BorderThickness="0,0,0,1" Padding="4,5">
+                                                    <Grid ColumnDefinitions="*,*,75,75,75,45">
+                                                        <TextBox Grid.Column="0" Text="{Binding Username}" Margin="2,0" Height="28" VerticalContentAlignment="Center" Background="#FFFFFF" BorderBrush="#CBD5E1" FontSize="12"/>
+                                                        <TextBox Grid.Column="1" Text="{Binding Password}" Margin="2,0" Height="28" VerticalContentAlignment="Center" Background="#FFFFFF" BorderBrush="#CBD5E1" FontSize="12"/>
+                                                        <CheckBox Grid.Column="2" IsChecked="{Binding CanRead}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <CheckBox Grid.Column="3" IsChecked="{Binding CanWrite}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <CheckBox Grid.Column="4" IsChecked="{Binding CanDelete}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                        <Button Grid.Column="5" Content="🗑" Classes="danger" Padding="0" Height="26" Width="26" HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+                                                                IsEnabled="{Binding CanBeDeleted}" ToolTip.Tip="Hapus pengguna ini" Click="BtnDeleteUserRow_Click"/>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Card 3: Perilaku Aplikasi & Lifecycle -->
+                    <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="18">
+                        <StackPanel Spacing="10">
+                            <TextBlock x:Name="LblAppBehaviorTitle" Text="⚡ Perilaku Aplikasi &amp; System Tray" FontSize="15" FontWeight="SemiBold" Foreground="#0F172A"/>
+                            <TextBlock x:Name="LblAutoMinimizeNote" Text="Aplikasi dibatasi 1x jalan (Single Instance)." FontSize="12" Foreground="#64748B" TextWrapping="Wrap"/>
+                            <CheckBox x:Name="ChkMinimizeToTrayOnClose" Content="Minimized to system tray when click close" IsChecked="True" FontSize="12" Margin="0,2,0,2"/>
+                            <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,4,0,0">
+                                <Button x:Name="BtnExitApp" Content="❌ Keluar dari Aplikasi" Classes="danger" Padding="16,8" Click="BtnExitApp_Click"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Action Save -->
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Button x:Name="BtnSaveSettings" Content="💾 Simpan Pengaturan" Classes="primary" Padding="20,10" Click="BtnSaveSettings_Click"/>
+                        <Button x:Name="BtnResetSettings" Content="Kembalikan Default" Classes="outline" Padding="16,10" Click="BtnResetSettings_Click"/>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- ========================================================= -->
+            <!-- 3. TAB MENU: ABOUT (Tentang Aplikasi)                     -->
+            <!-- ========================================================= -->
+            <ScrollViewer x:Name="ViewMenuAbout" IsVisible="False">
+                <StackPanel Spacing="16" MaxWidth="780" HorizontalAlignment="Left">
+                    
+                    <!-- Hero Card -->
+                    <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="24">
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Border Grid.Column="0" Width="68" Height="68" CornerRadius="16" Background="#2563EB" Margin="0,0,20,0">
+                                <TextBlock Text="⚡" FontSize="36" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#FFFFFF"/>
+                            </Border>
+                            <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                                <TextBlock Text="FilanShare" FontSize="22" FontWeight="Bold" Foreground="#0F172A"/>
+                                <TextBlock x:Name="LblAboutVersion" Text="Versi v0.1.0 (Avalonia UI Desktop Multiplatform)" FontSize="13" Foreground="#2563EB" FontWeight="SemiBold"/>
+                                <TextBlock x:Name="LblAboutDesc" Text="Aplikasi transfer file P2P lokal stealth untuk Windows dan Linux tanpa publish/broadcast beacon." FontSize="13" Foreground="#64748B" TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!-- Features Highlights -->
+                    <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="20">
+                        <StackPanel Spacing="12">
+                            <TextBlock x:Name="LblAboutFeatures" Text="✨ Fitur Unggulan" FontSize="16" FontWeight="SemiBold" Foreground="#0F172A"/>
+                            
+                            <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="Auto,*">
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="🔒" Margin="0,4,10,4"/>
+                                <TextBlock x:Name="TxtAboutFeature1" Grid.Row="0" Grid.Column="1" Text="100% Stealth Mode: No UDP broadcast/mDNS beacons emitted, keeping your device hidden from LAN discovery scanners." Foreground="#334155" TextWrapping="Wrap" Margin="0,4"/>
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="💻" Margin="0,4,10,4"/>
+                                <TextBlock x:Name="TxtAboutFeature2" Grid.Row="1" Grid.Column="1" Text="Cross-Platform: Runs identically on Windows 10/11 and Linux (Ubuntu, Debian, Fedora, Arch)." Foreground="#334155" TextWrapping="Wrap" Margin="0,4"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="⚡" Margin="0,4,10,4"/>
+                                <TextBlock x:Name="TxtAboutFeature3" Grid.Row="2" Grid.Column="1" Text="High-Speed Streaming: Direct peer-to-peer transfer with fast buffer streaming and no file size limit." Foreground="#334155" TextWrapping="Wrap" Margin="0,4"/>
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="🌐" Margin="0,4,10,4"/>
+                                <TextBlock x:Name="TxtAboutFeature4" Grid.Row="3" Grid.Column="1" Text="Direct P2P Transfer: Direct peer-to-peer local transfer without third-party servers." Foreground="#334155" TextWrapping="Wrap" Margin="0,4"/>
+                            </Grid>
+                        </StackPanel>
+                    </Border>
+
+                    <!-- System Diagnostics Card -->
+                    <Border Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="1" CornerRadius="8" Padding="20">
+                        <StackPanel Spacing="10">
+                            <TextBlock x:Name="LblAboutSysInfo" Text="🖥️ Informasi Sistem &amp; Lingkungan" FontSize="16" FontWeight="SemiBold" Foreground="#0F172A"/>
+
+                            <Grid RowDefinitions="Auto,Auto,Auto,Auto" ColumnDefinitions="140,*">
+                                <TextBlock x:Name="LblAboutOsTag" Grid.Row="0" Grid.Column="0" Text="Sistem Operasi:" Foreground="#64748B" Margin="0,3"/>
+                                <TextBlock x:Name="TxtAboutOs" Grid.Row="0" Grid.Column="1" Text="Windows / Linux" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,3"/>
+
+                                <TextBlock x:Name="LblAboutFrameworkTag" Grid.Row="1" Grid.Column="0" Text="Framework:" Foreground="#64748B" Margin="0,3"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" Text=".NET 10.0 (Avalonia UI 11.3)" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,3"/>
+
+                                <TextBlock x:Name="LblAboutArchTag" Grid.Row="2" Grid.Column="0" Text="Arsitektur CPU:" Foreground="#64748B" Margin="0,3"/>
+                                <TextBlock x:Name="TxtAboutArch" Grid.Row="2" Grid.Column="1" Text="x86 / x64" FontWeight="SemiBold" Foreground="#0F172A" Margin="0,3"/>
+
+                                <TextBlock x:Name="LblAboutAppPathTag" Grid.Row="3" Grid.Column="0" Text="Folder Aplikasi:" Foreground="#64748B" Margin="0,3"/>
+                                <TextBlock x:Name="TxtAboutAppPath" Grid.Row="3" Grid.Column="1" Text="-" FontWeight="SemiBold" Foreground="#2563EB" Margin="0,3"/>
+                            </Grid>
+
+                            <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,8,0,0">
+                                <Button x:Name="BtnOpenAppFolder" Content="📂 Buka Folder Aplikasi" Classes="outline" Click="BtnOpenAppFolder_Click"/>
+                                <Button x:Name="BtnCopySysInfo" Content="📋 Salin Info Sistem" Classes="outline" Click="BtnCopySysInfo_Click"/>
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+        </Grid>
+
+        <!-- ========================================== -->
+        <!-- EVENT LOG PANEL                            -->
+        <!-- ========================================== -->
+        <Border Grid.Row="2" Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0">
+            <Grid RowDefinitions="Auto,Auto">
+
+                <!-- Log Panel Header / Toggle Bar -->
+                <Border Grid.Row="0" Background="#1E293B" Padding="14,7" Cursor="Hand">
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto">
+                        <!-- Toggle arrow + title -->
+                        <Button x:Name="BtnToggleEventLog" Grid.Column="0"
+                                Background="Transparent" BorderThickness="0"
+                                Padding="0" Cursor="Hand"
+                                Click="BtnToggleEventLog_Click">
+                            <StackPanel Orientation="Horizontal" Spacing="8">
+                                <TextBlock x:Name="TxtEventLogArrow" Text="▲" FontSize="10" Foreground="#94A3B8" VerticalAlignment="Center"/>
+                                <TextBlock Text="📋" FontSize="12" VerticalAlignment="Center"/>
+                                <TextBlock Text="Event Log" FontSize="12" FontWeight="SemiBold" Foreground="#E2E8F0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Live counters -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" Margin="18,0,0,0" VerticalAlignment="Center">
+                            <Border x:Name="BadgeInfo" Background="#1E40AF" CornerRadius="4" Padding="6,2">
+                                <TextBlock x:Name="TxtLogCountInfo" Text="INFO: 0" FontSize="10" Foreground="#BFDBFE" FontWeight="Bold"/>
+                            </Border>
+                            <Border x:Name="BadgeSuccess" Background="#065F46" CornerRadius="4" Padding="6,2">
+                                <TextBlock x:Name="TxtLogCountSuccess" Text="OK: 0" FontSize="10" Foreground="#A7F3D0" FontWeight="Bold"/>
+                            </Border>
+                            <Border x:Name="BadgeWarn" Background="#92400E" CornerRadius="4" Padding="6,2">
+                                <TextBlock x:Name="TxtLogCountWarn" Text="WARN: 0" FontSize="10" Foreground="#FDE68A" FontWeight="Bold"/>
+                            </Border>
+                            <Border x:Name="BadgeError" Background="#7F1D1D" CornerRadius="4" Padding="6,2">
+                                <TextBlock x:Name="TxtLogCountError" Text="ERR: 0" FontSize="10" Foreground="#FECACA" FontWeight="Bold"/>
+                            </Border>
+                        </StackPanel>
+
+                        <!-- Buttons -->
+                        <Button x:Name="BtnEventLogCopyAll" Grid.Column="2"
+                                Content="📋 Copy" FontSize="10" Padding="8,3" Margin="0,0,6,0"
+                                Background="#334155" BorderBrush="#475569" BorderThickness="1" Foreground="#CBD5E1"
+                                CornerRadius="4"
+                                Click="BtnEventLogCopyAll_Click"/>
+                        <Button x:Name="BtnEventLogClear" Grid.Column="3"
+                                Content="🧹 Clear" FontSize="10" Padding="8,3" Margin="0,0,6,0"
+                                Background="#334155" BorderBrush="#475569" BorderThickness="1" Foreground="#CBD5E1"
+                                CornerRadius="4"
+                                Click="BtnEventLogClear_Click"/>
+                        <TextBlock x:Name="TxtEventLogLastMsg" Grid.Column="4"
+                                   Text="" FontSize="10" Foreground="#64748B" VerticalAlignment="Center"
+                                   MaxWidth="280" TextTrimming="CharacterEllipsis"/>
+                    </Grid>
+                </Border>
+
+                <!-- Log Table -->
+                <Border x:Name="PanelEventLog" Grid.Row="1" MaxHeight="115" IsVisible="True">
+                    <ScrollViewer x:Name="EventLogScrollViewer" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="EventLogList" Background="#0F172A">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid ColumnDefinitions="130,80,*" Margin="0,0" MinHeight="22"
+                                          Background="Transparent">
+                                        <!-- Timestamp -->
+                                        <TextBlock Grid.Column="0" Text="{Binding FormattedTimeFull}"
+                                                   FontFamily="Consolas" FontSize="10.5"
+                                                   Foreground="#475569" VerticalAlignment="Center"
+                                                   Margin="12,2,4,2"/>
+                                        <!-- Level Badge -->
+                                        <Border Grid.Column="1" CornerRadius="3" Padding="5,1" Margin="0,3,8,3"
+                                                HorizontalAlignment="Left" VerticalAlignment="Center"
+                                                Background="{Binding LevelBackground}">
+                                            <TextBlock Text="{Binding LevelLabel}" FontSize="10" FontWeight="Bold"
+                                                       Foreground="{Binding LevelForeground}"/>
+                                        </Border>
+                                        <!-- Message -->
+                                        <TextBlock Grid.Column="2" Text="{Binding Message}"
+                                                   FontFamily="Consolas" FontSize="10.5"
+                                                   Foreground="{Binding MessageColor}"
+                                                   VerticalAlignment="Center"
+                                                   Margin="0,2,12,2" TextWrapping="NoWrap"
+                                                   TextTrimming="CharacterEllipsis"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!-- ========================================== -->
+        <!-- BOTTOM STATUS BAR                          -->
+        <!-- ========================================== -->
+        <Border Grid.Row="3" Background="#FFFFFF" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0" Padding="20,7">
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBlock x:Name="TxtStatusMessage" Grid.Column="0" Text="Ready." FontSize="11" Foreground="#64748B" VerticalAlignment="Center"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+                    <TextBlock x:Name="TxtFooterVersion" Text="FilanShare v0.3.2 •" FontSize="11" Foreground="#94A3B8" VerticalAlignment="Center"/>
+                    <!-- Windows Flag Icon -->
+                    <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" Margin="2,0,0,0">
+                        <Border Width="11" Height="11" VerticalAlignment="Center">
+                            <Grid RowDefinitions="*,*" ColumnDefinitions="*,*">
+                                <Border Grid.Row="0" Grid.Column="0" Background="#00A4EF" Margin="0.5"/>
+                                <Border Grid.Row="0" Grid.Column="1" Background="#00A4EF" Margin="0.5"/>
+                                <Border Grid.Row="1" Grid.Column="0" Background="#00A4EF" Margin="0.5"/>
+                                <Border Grid.Row="1" Grid.Column="1" Background="#00A4EF" Margin="0.5"/>
+                            </Grid>
+                        </Border>
+                        <TextBlock Text="Windows" FontSize="11" Foreground="#64748B" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <TextBlock Text="&amp;" FontSize="11" Foreground="#94A3B8" VerticalAlignment="Center"/>
+                    <!-- Linux Penguin Icon -->
+                    <StackPanel Orientation="Horizontal" Spacing="3" VerticalAlignment="Center">
+                        <TextBlock Text="🐧" FontSize="12" VerticalAlignment="Center"/>
+                        <TextBlock Text="Linux" FontSize="11" Foreground="#64748B" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
